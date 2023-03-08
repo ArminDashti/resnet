@@ -12,19 +12,20 @@ class BasicBlock(nn.Module):
         self.expansion = expansion
         self.downsample = downsample
         if num_layers > 34:
-            self.conv0 = nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=1,bias=False)
+            self.conv0 = nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=1, bias=False)
             self.bn0 = nn.BatchNorm2d(out_channels)
             in_channels = out_channels
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1,bias=False)
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(out_channels)
         if num_layers > 34:
-            self.conv2 = nn.Conv2d(out_channels, out_channels*self.expansion, kernel_size=1, stride=1,bias=False)
+            self.conv2 = nn.Conv2d(out_channels, out_channels*self.expansion, kernel_size=1, stride=1, bias=False)
             self.bn2 = nn.BatchNorm2d(out_channels*self.expansion)
         else:
-            self.conv2 = nn.Conv2d(out_channels, out_channels*self.expansion, kernel_size=3, padding=1,bias=False)
+            self.conv2 = nn.Conv2d(out_channels, out_channels*self.expansion, kernel_size=3, padding=1, bias=False)
             self.bn2 = nn.BatchNorm2d(out_channels*self.expansion)
         self.relu = nn.ReLU(inplace=True)
-    def forward(self, x: Tensor) -> Tensor:
+        
+    def forward(self, x):
         identity = x
         if self.num_layers > 34:
             out = self.conv0(x)
@@ -40,7 +41,7 @@ class BasicBlock(nn.Module):
         out = self.bn2(out)
         if self.downsample is not None:
             identity = self.downsample(x)
-        out += identity
+        out = identity + out
         out = self.relu(out)
         return  out
     
@@ -78,7 +79,7 @@ class ResNet(nn.Module):
     def _make_layer(self, block, out_channels, blocks, stride=1, num_layers=18):
         downsample = None
         if stride != 1 or self.in_channels != out_channels * self.expansion:
-            downsample = nn.Sequential(nn.Conv2d(self.in_channels,out_channels*self.expansion, kernel_size=1,
+            downsample = nn.Sequential(nn.Conv2d(self.in_channels, out_channels*self.expansion, kernel_size=1,
                                                  stride=stride,bias=False),nn.BatchNorm2d(out_channels * self.expansion),)
         layers = []
         layers.append(block(num_layers, self.in_channels, out_channels, stride, self.expansion, downsample))
@@ -86,6 +87,7 @@ class ResNet(nn.Module):
         for i in range(1, blocks):
             layers.append(block(num_layers, self.in_channels, out_channels, expansion=self.expansion))
         return nn.Sequential(*layers)
+    
     def forward(self, x):
         x = self.conv1(x)
         x = self.bn1(x)
@@ -100,5 +102,9 @@ class ResNet(nn.Module):
         x = self.fc(x)
         return x
     
-    
+   
 model = ResNet(img_channels=3, num_layers=18, block=BasicBlock, num_classes=1000)
+#%%
+i = 2
+j = 3
+j += i
